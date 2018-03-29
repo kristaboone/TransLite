@@ -1,22 +1,31 @@
 package com.example.kristavanderhorst.translite;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
-import android.speech.RecognizerIntent;
+import android.speech.RecognitionListener;
+import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
+import android.speech.RecognizerIntent;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
+
+import android.util.Log;
 import android.widget.TextView;
+import android.view.KeyEvent;
 
 import java.util.ArrayList;
-import java.util.Locale;
+
+import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
 
     private final String VOICE_STRING_DEFAULT = "DEFAULT"; // for debugging
-    private final int REQ_CODE_SPEECH_INPUT = 100;
+
+    private SpeechRecognizer mSpeechRecognizer;
+
+    private TextView mTranslateTextView;
     private TextView mVoiceTextView;
+    private String mTranslateString;
     private String mVoiceString;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,39 +34,19 @@ public class MainActivity extends AppCompatActivity {
 
         mVoiceTextView = (TextView) findViewById(R.id.voiceTextView);
         mVoiceString = VOICE_STRING_DEFAULT;
-    }
-    
-    // TODO: Get input language from App settings?
-    public void promptSpeechInput() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            mVoiceString = VOICE_STRING_DEFAULT;
-        }
+
+        mTranslateTextView = (TextView) findViewById(R.id.translateTextView);
+        mTranslateString = VOICE_STRING_DEFAULT;
+
+        // Set up speech recognizer
+        mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        mSpeechRecognizer.setRecognitionListener(new SpeechRecognitionListener());
     }
 
-    /**
-     * Receiving speech input
-     * */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && null != data) {
-
-                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    mVoiceString = result.get(0);
-                    mVoiceTextView.setText(mVoiceString);
-                }
-                break;
-            }
-        }
+    // Connect to Google Cloud Translation API
+    private void runTranslation() {
+        mTranslateString = "waka waka";
+        mTranslateTextView.setText(mTranslateString);
     }
 
     // Capture voice when volume-down pressed
@@ -66,9 +55,61 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keycode, KeyEvent e) {
         switch(keycode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                promptSpeechInput();
+                // Set up intent
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,this.getPackageName());
+
+                mSpeechRecognizer.startListening(intent);
                 return true;
         }
         return super.onKeyDown(keycode, e);
+    }
+
+    // Our own RecognitionListener implementation to avoid pop-up from google..
+    protected class SpeechRecognitionListener implements RecognitionListener {
+        public void onReadyForSpeech(Bundle params)
+        {
+            Log.d(TAG, "onReadyForSpeech");
+        }
+        public void onBeginningOfSpeech()
+        {
+            Log.d(TAG, "onBeginningOfSpeech");
+        }
+        public void onRmsChanged(float rmsdB)
+        {
+            Log.d(TAG, "onRmsChanged");
+        }
+        public void onBufferReceived(byte[] buffer)
+        {
+            Log.d(TAG, "onBufferReceived");
+        }
+        public void onEndOfSpeech()
+        {
+            Log.d(TAG, "onEndofSpeech");
+        }
+        public void onError(int error)
+        {
+            Log.d(TAG,  "error " +  error);
+            mVoiceTextView.setText("error " + error);
+        }
+        public void onResults(Bundle results)
+        {
+            Log.d(TAG, "onResults " + results);
+            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            mVoiceString = matches.get(0);
+            mVoiceTextView.setText(mVoiceString);
+
+            // translate text to new language
+            runTranslation();
+        }
+        public void onPartialResults(Bundle partialResults)
+        {
+            Log.d(TAG, "onPartialResults");
+        }
+        public void onEvent(int eventType, Bundle params)
+        {
+            Log.d(TAG, "onEvent " + eventType);
+        }
     }
 }
