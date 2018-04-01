@@ -57,7 +57,43 @@ public class MainActivity extends AppCompatActivity {
 
     // Connect to Google Cloud Translation API
     private void runTranslation() {
-        mTranslateTextView.setText(mTranslateString);
+        // Get operator language- use default for now
+        String opLang = Locale.getDefault().getLanguage();
+        // Get interacter language- use spanish for now to test
+        String inLang = "es";
+
+        // Create Json URL
+        String url = "https://translation.googleapis.com/language/translate/v2?";
+        url += "q="+mVoiceTextView.getText();
+        url += "&target="+opLang;
+        url += "&format=text";
+        url += "&source="+inLang;
+        url += "&key=";
+
+        // Create JsonObjectRequest
+        JsonObjectRequest jsonRequest = new JsonObjectRequest
+        (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    JSONObject responseList = response.getJSONObject("data");
+                    JSONArray transArray = responseList.getJSONArray("translations");
+                    JSONObject textObj = transArray.getJSONObject(0);
+                    mTranslateTextView.setText(textObj.getString("translatedText"));
+                } catch (JSONException e) {
+                    mTranslateTextView.setText(e.getMessage());
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+
+        // Add Json request to request queue
+        mVolleyRequest.addToRequestQueue(jsonRequest);
     }
 
     // Capture voice when volume-down pressed
