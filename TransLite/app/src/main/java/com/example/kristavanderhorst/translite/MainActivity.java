@@ -1,5 +1,6 @@
 package com.example.kristavanderhorst.translite;
 
+
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
@@ -10,17 +11,26 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.view.KeyEvent;
-
 import java.util.ArrayList;
+import java.util.Locale;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static android.content.ContentValues.TAG;
 
+// TODO: Make sure user has correct permissions set before doing anything...
 public class MainActivity extends AppCompatActivity {
-
-    private final String VOICE_STRING_DEFAULT = "DEFAULT"; // for debugging
-
+    // Speech recognition
     private SpeechRecognizer mSpeechRecognizer;
 
+    // Text display
     private TextView mTranslateTextView;
     private TextView mVoiceTextView;
 
