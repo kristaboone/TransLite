@@ -23,20 +23,15 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView mTranslateTextView;
     private TextView mVoiceTextView;
-    private String mTranslateString;
-    private String mVoiceString;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Set up text views (voice text view is for debugging)
         mVoiceTextView = (TextView) findViewById(R.id.voiceTextView);
-        mVoiceString = VOICE_STRING_DEFAULT;
-
         mTranslateTextView = (TextView) findViewById(R.id.translateTextView);
-        mTranslateString = VOICE_STRING_DEFAULT;
 
         // Set up speech recognizer
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
@@ -45,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Connect to Google Cloud Translation API
     private void runTranslation() {
-        mTranslateString = "waka waka";
         mTranslateTextView.setText(mTranslateString);
     }
 
@@ -97,8 +91,7 @@ public class MainActivity extends AppCompatActivity {
         {
             Log.d(TAG, "onResults " + results);
             ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            mVoiceString = matches.get(0);
-            mVoiceTextView.setText(mVoiceString);
+            mVoiceTextView.setText(matches.get(0));
 
             // translate text to new language
             runTranslation();
