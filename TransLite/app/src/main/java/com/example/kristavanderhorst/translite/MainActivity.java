@@ -30,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     // Speech recognition
     private SpeechRecognizer mSpeechRecognizer;
 
+    // Speech translation
+    private SingletonRequestQueue mVolleyRequest;
+
     // Text display
     private TextView mTranslateTextView;
     private TextView mVoiceTextView;
@@ -46,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
         // Set up speech recognizer
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         mSpeechRecognizer.setRecognitionListener(new SpeechRecognitionListener());
+
+        // Set up volley singleton request queue
+        // Using single instance will speed up access to translation API
+        mVolleyRequest = SingletonRequestQueue.getInstance(this);
     }
 
     // Connect to Google Cloud Translation API
