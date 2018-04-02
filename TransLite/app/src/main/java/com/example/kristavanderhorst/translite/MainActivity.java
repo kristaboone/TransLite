@@ -29,6 +29,8 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends AppCompatActivity {
     // Speech recognition
     private SpeechRecognizer mSpeechRecognizer;
+    private String mOperatorLang;
+    private String mInteractLang;
 
     // Speech translation
     private SingletonRequestQueue mVolleyRequest;
@@ -49,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
         // Set up speech recognizer
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         mSpeechRecognizer.setRecognitionListener(new SpeechRecognitionListener());
+        mOperatorLang = Locale.getDefault().getLanguage();
+        mInteractLang = "es";
 
         // Set up volley singleton request queue
         // Using single instance will speed up access to translation API
@@ -57,17 +61,12 @@ public class MainActivity extends AppCompatActivity {
 
     // Connect to Google Cloud Translation API
     private void runTranslation() {
-        // Get operator language- use default for now
-        String opLang = Locale.getDefault().getLanguage();
-        // Get interacter language- use spanish for now to test
-        String inLang = "es";
-
         // Create Json URL
         String url = "https://translation.googleapis.com/language/translate/v2?";
         url += "q="+mVoiceTextView.getText();
-        url += "&target="+opLang;
+        url += "&target="+mOperatorLang;
         url += "&format=text";
-        url += "&source="+inLang;
+        url += "&source="+mInteractLang;
         url += "&key=";
 
         // Create JsonObjectRequest
@@ -102,9 +101,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keycode, KeyEvent e) {
         switch(keycode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                // Set up intent
+                // Set up speech recognizer in user's default language
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, mOperatorLang);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, mOperatorLang);
                 intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,this.getPackageName());
 
                 mSpeechRecognizer.startListening(intent);
