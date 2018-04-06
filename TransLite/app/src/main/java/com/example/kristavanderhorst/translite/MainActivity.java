@@ -16,7 +16,6 @@ import android.view.ContextThemeWrapper;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.WindowManager;
 import android.widget.TextView;
 import android.view.KeyEvent;
 
@@ -38,6 +37,7 @@ import static android.content.ContentValues.TAG;
 // TODO: Make sure user has correct permissions set before doing anything...
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     // Speech recognition
+    private static final int SETTINGS_INTENT_ID = 100;
     private SpeechRecognizer mSpeechRecognizer;
     private String mOperatorLang;
     private String mInteractLang;
@@ -73,12 +73,21 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         // Set up speech recognizer
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         mSpeechRecognizer.setRecognitionListener(new SpeechRecognitionListener());
-        mOperatorLang = Locale.getDefault().getLanguage();
-        mInteractLang = "es";
 
         // Set up volley singleton request queue
         // Using single instance will speed up access to translation API
         mVolleyRequest = SingletonRequestQueue.getInstance(this);
+
+        // Ensure user sets up settings before starting
+        Intent settingsIntent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(settingsIntent, SETTINGS_INTENT_ID);
+    }
+
+    public void setInteractLang(String lang) {
+        mInteractLang = lang;
+    }
+    public void setOperatorLang(String lang) {
+        mOperatorLang = lang;
     }
 
     // Connect to Google Cloud Translation API
@@ -89,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         url += "&target="+mOperatorLang;
         url += "&format=text";
         url += "&source="+mInteractLang;
-        url += "&key=AIzaSyC9NuYoZ0qSThz8qH-et-nhcmwYjgl8PPQ";
+        url += "&key=";
 
         // Create JsonObjectRequest
         JsonObjectRequest jsonRequest = new JsonObjectRequest
@@ -136,8 +145,23 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
                 mSpeechRecognizer.startListening(intent);
                 return true;
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                // Start settings activity
+                Intent settingsIntent = new Intent(this, SettingsActivity.class);
+                startActivityForResult(settingsIntent, SETTINGS_INTENT_ID);
         }
         return super.onKeyDown(keycode, e);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == SETTINGS_INTENT_ID) {
+            if (data.hasExtra("inputLang")) {
+                mInteractLang = data.getExtras().getString("inputLang");
+            }
+            if (data.hasExtra("outputLang")) {
+                mOperatorLang = data.getExtras().getString("outputLang");
+            }
+        }
     }
 
     // *****************************************************************************************
