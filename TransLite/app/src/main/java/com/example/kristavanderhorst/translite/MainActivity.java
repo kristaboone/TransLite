@@ -83,13 +83,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         startActivityForResult(settingsIntent, SETTINGS_INTENT_ID);
     }
 
-    public void setInteractLang(String lang) {
-        mInteractLang = lang;
-    }
-    public void setOperatorLang(String lang) {
-        mOperatorLang = lang;
-    }
-
     // Connect to Google Cloud Translation API
     private void runTranslation() {
         // Create Json URL
