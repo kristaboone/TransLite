@@ -43,14 +43,19 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private static final int SETTINGS_INTENT_ID = 100;
     private SpeechRecognizer mSpeechRecognizer;
     private String mVoiceInput;
+
     // Speech translation
     private SingletonRequestQueue mVolleyRequest;
+
+    // Transcribe
+    private Transcriber mTranscriber;
+
     // User options
     private String mOperatorLang;
     private String mInteractLang;
     private Boolean mUseTranscribe;
 
-    // Display item
+    // Display items
     private TextView mTranslateTextView;
     private GifTextView mSpeechGif;
 
@@ -90,6 +95,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         // Using single instance will speed up access to translation API
         mVolleyRequest = SingletonRequestQueue.getInstance(this);
 
+        // Set up singleton Transcriber
+        mTranscriber = Transcriber.getInstance(this);
+
         // Ensure user sets up settings before starting
         this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     }
@@ -116,10 +124,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
                     // Format text
                     String outputStr = textObj.getString("translatedText");
-                    outputStr = "\n" + outputStr.substring(0,1).toUpperCase() + outputStr.substring(1);
-                    mTranslateTextView.setText(outputStr);
+                    outputStr = outputStr.substring(0,1).toUpperCase() + outputStr.substring(1);
+                    mTranslateTextView.setText("\n"+outputStr);
 
                     // Handle transcribe
+                    if (mUseTranscribe) {
+                        mTranscriber.write("Foo", outputStr);
+                    }
 
                 } catch (JSONException e) {
                     mTranslateTextView.setText(e.getMessage());
