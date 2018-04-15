@@ -16,6 +16,7 @@ import android.view.ContextThemeWrapper;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.TextView;
 import android.view.KeyEvent;
 
@@ -41,12 +42,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     // Speech recognition
     private static final int SETTINGS_INTENT_ID = 100;
     private SpeechRecognizer mSpeechRecognizer;
-    private String mOperatorLang;
-    private String mInteractLang;
     private String mVoiceInput;
-
     // Speech translation
     private SingletonRequestQueue mVolleyRequest;
+    // User options
+    private String mOperatorLang;
+    private String mInteractLang;
+    private Boolean mUseTranscribe;
 
     // Display item
     private TextView mTranslateTextView;
@@ -62,6 +64,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Set default values
+        mInteractLang = Locale.getDefault().getLanguage();
+        mOperatorLang = Locale.getDefault().getLanguage();
+        mUseTranscribe= false;
 
         // Set up text view
         mTranslateTextView = (TextView) findViewById(R.id.translateTextView);
@@ -84,8 +91,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         mVolleyRequest = SingletonRequestQueue.getInstance(this);
 
         // Ensure user sets up settings before starting
-        Intent settingsIntent = new Intent(this, SettingsActivity.class);
-        startActivityForResult(settingsIntent, SETTINGS_INTENT_ID);
+        this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     }
 
     // Connect to Google Cloud Translation API
@@ -112,6 +118,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     String outputStr = textObj.getString("translatedText");
                     outputStr = "\n" + outputStr.substring(0,1).toUpperCase() + outputStr.substring(1);
                     mTranslateTextView.setText(outputStr);
+
+                    // Handle transcribe
+
                 } catch (JSONException e) {
                     mTranslateTextView.setText(e.getMessage());
                 }
@@ -148,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             case KeyEvent.KEYCODE_VOLUME_UP:
                 // Start settings activity
                 Intent settingsIntent = new Intent(this, SettingsActivity.class);
+                settingsIntent.putExtra("operatorLang", mOperatorLang);
+                settingsIntent.putExtra("interactLang", mInteractLang);
+                settingsIntent.putExtra("enableTranscribe", mUseTranscribe);
                 startActivityForResult(settingsIntent, SETTINGS_INTENT_ID);
         }
         return super.onKeyDown(keycode, e);
@@ -160,6 +172,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             }
             if (data.hasExtra("outputLang")) {
                 mOperatorLang = data.getExtras().getString("outputLang");
+            }
+            if (data.hasExtra("enableTranscribe")) {
+                mUseTranscribe = data.getExtras().getBoolean("enableTranscribe");
             }
         }
     }

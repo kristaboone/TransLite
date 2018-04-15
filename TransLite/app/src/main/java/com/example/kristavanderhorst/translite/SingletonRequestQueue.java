@@ -18,7 +18,6 @@ public class SingletonRequestQueue {
     private SingletonRequestQueue(Context context) {
         mCtx = context;
         mRequestQueue = getRequestQueue();
-
     }
 
     public static synchronized SingletonRequestQueue getInstance(Context context) {
