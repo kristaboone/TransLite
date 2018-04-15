@@ -176,6 +176,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             if (data.hasExtra("enableTranscribe")) {
                 mUseTranscribe = data.getExtras().getBoolean("enableTranscribe");
             }
+
+            // Start translation on settings return
+            this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_VOLUME_DOWN));
         }
     }
 
