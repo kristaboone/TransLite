@@ -32,6 +32,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import pl.droidsonroids.gif.GifTextView;
+
 import static android.content.ContentValues.TAG;
 
 // TODO: Make sure user has correct permissions set before doing anything...
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     // Display item
     private TextView mTranslateTextView;
+    private GifTextView mSpeechGif;
 
     private SurfaceHolder mCameraSurfHolder;
     private SurfaceView mCameraView;
@@ -62,7 +65,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         // Set up text view
         mTranslateTextView = (TextView) findViewById(R.id.translateTextView);
-        mTranslateTextView.setText("\nWaiting for input...");
+        // Set up speech view
+        mSpeechGif = (GifTextView) findViewById(R.id.speechGif);
+        mSpeechGif.setVisibility(View.INVISIBLE);
 
         // Set up camera
         mCameraView = (SurfaceView) findViewById(R.id.cameraView);
@@ -137,6 +142,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,this.getPackageName());
 
                 mSpeechRecognizer.startListening(intent);
+                mTranslateTextView.setText("");
+                mSpeechGif.setVisibility(View.VISIBLE);
                 return true;
             case KeyEvent.KEYCODE_VOLUME_UP:
                 // Start settings activity
@@ -301,10 +308,14 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
         public void onError(int error)
         {
+            mSpeechGif.setVisibility(View.INVISIBLE);
+            mTranslateTextView.setText("\n?");
             Log.d(TAG,  "error " +  error);
         }
         public void onResults(Bundle results)
         {
+            mSpeechGif.setVisibility(View.INVISIBLE);
+
             Log.d(TAG, "onResults " + results);
             ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             mVoiceInput = matches.get(0);
