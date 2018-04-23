@@ -17,6 +17,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.view.KeyEvent;
 
@@ -40,6 +41,8 @@ import static android.content.ContentValues.TAG;
 // TODO: Make sure user has correct permissions set before doing anything...
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     // Speech recognition
+    private static final int TOGGLE_SETTINGS_ID = KeyEvent.KEYCODE_VOLUME_UP;
+    private static final int TOGGLE_VOICECAP_ID = KeyEvent.KEYCODE_VOLUME_DOWN;
     private static final int SETTINGS_INTENT_ID = 100;
     private SpeechRecognizer mSpeechRecognizer;
     private String mVoiceInput;
@@ -51,12 +54,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private Transcriber mTranscriber;
 
     // User options
-    private String mOperatorLang;
-    private String mInteractLang;
-    private Boolean mUseTranscribe;
+    private static String mOperatorLang = Locale.getDefault().getLanguage();
+    private static String mInteractLang = Locale.getDefault().getLanguage();
+    private static Boolean mUseTranscribe = false;
 
     // Display items
     private TextView mTranslateTextView;
+    private static String mTranslateText = "";
     private GifTextView mSpeechGif;
 
     private SurfaceHolder mCameraSurfHolder;
@@ -72,22 +76,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
-        // Set default values
-        mInteractLang = Locale.getDefault().getLanguage();
-        mOperatorLang = Locale.getDefault().getLanguage();
-        mUseTranscribe= false;
-
         // Set up text view
         mTranslateTextView = (TextView) findViewById(R.id.translateTextView);
+        mTranslateTextView.setText(mTranslateText);
         // Set up speech view
         mSpeechGif = (GifTextView) findViewById(R.id.speechGif);
         mSpeechGif.setVisibility(View.INVISIBLE);
-
-        // Set up camera
-        mCameraView = (SurfaceView) findViewById(R.id.cameraView);
-        mCameraID = Camera.CameraInfo.CAMERA_FACING_BACK;
-        mCameraSurfHolder = mCameraView.getHolder();
-        mCameraSurfHolder.addCallback(this);
 
         // Set up speech recognizer
         mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
@@ -101,7 +95,15 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         mTranscriber = Transcriber.getInstance(this);
 
         // Ensure user sets up settings before starting
-        this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
+        if (savedInstanceState == null) {
+            this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, TOGGLE_SETTINGS_ID));
+        }
+
+        // Set up camera
+        mCameraView = (SurfaceView) findViewById(R.id.cameraView);
+        mCameraID = Camera.CameraInfo.CAMERA_FACING_BACK;
+        mCameraSurfHolder = mCameraView.getHolder();
+        mCameraSurfHolder.addCallback(this);
     }
 
     // Connect to Google Cloud Translation API
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         url += "&target="+mOperatorLang;
         url += "&format=text";
         url += "&source="+mInteractLang;
-        url += "&key=";
+        url += "&key=AIzaSyC9NuYoZ0qSThz8qH-et-nhcmwYjgl8PPQ";
 
         // Create JsonObjectRequest
         JsonObjectRequest jsonRequest = new JsonObjectRequest
@@ -128,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     String outputStr = textObj.getString("translatedText");
                     outputStr = outputStr.substring(0,1).toUpperCase() + outputStr.substring(1);
                     mTranslateTextView.setText("\n"+outputStr);
+                    mTranslateText = outputStr; // store incase orientation change
 
                     // Handle transcribe
                     if (mUseTranscribe) {
@@ -155,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     public boolean onKeyDown(int keycode, KeyEvent e) {
         switch(keycode) {
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
+            case TOGGLE_VOICECAP_ID:
                 // Set up speech recognizer in user's default language
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -167,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 mTranslateTextView.setText("");
                 mSpeechGif.setVisibility(View.VISIBLE);
                 return true;
-            case KeyEvent.KEYCODE_VOLUME_UP:
+            case TOGGLE_SETTINGS_ID:
                 // Start settings activity
                 Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 settingsIntent.putExtra("operatorLang", mOperatorLang);
