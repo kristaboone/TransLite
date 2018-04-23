@@ -1,9 +1,11 @@
 package com.example.kristavanderhorst.translite;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
@@ -52,6 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
                 data.putExtra("enableTranscribe", mTSEnableBox.isChecked());
                 setResult(RESULT_OK, data);
                 super.finish();
+                return true;
         }
         return super.onKeyDown(keycode, e);
     }

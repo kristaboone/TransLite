@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 settingsIntent.putExtra("interactLang", mInteractLang);
                 settingsIntent.putExtra("enableTranscribe", mUseTranscribe);
                 startActivityForResult(settingsIntent, SETTINGS_INTENT_ID);
+                return true;
         }
         return super.onKeyDown(keycode, e);
     }
