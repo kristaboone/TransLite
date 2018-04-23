@@ -157,8 +157,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 // Set up speech recognizer in user's default language
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, mOperatorLang);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, mOperatorLang);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, mInteractLang);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, mInteractLang);
                 intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,this.getPackageName());
 
                 mSpeechRecognizer.startListening(intent);
